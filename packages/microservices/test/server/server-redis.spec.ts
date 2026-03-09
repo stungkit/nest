@@ -291,23 +291,21 @@ describe('ServerRedis', () => {
   });
 
   describe('createRedisClient', () => {
-    it('should use default clientInfoTag when not provided', () => {
+    it('should not set clientInfoTag when not provided', () => {
       const serverWithoutTag = new ServerRedis({});
       const redisClient = serverWithoutTag.createRedisClient();
 
       expect(redisClient).to.be.ok;
-      // Verify the clientInfoTag was set to the default value (nestjs_v{version})
-      expect(redisClient.options.clientInfoTag).to.match(
-        /^nestjs_v\d+\.\d+\.\d+$/,
-      );
+      // Verify no clientInfoTag was set (opt-in only)
+      expect(redisClient.options.clientInfoTag).to.be.undefined;
     });
 
-    it('should use custom clientInfoTag when provided', () => {
+    it('should use clientInfoTag when provided', () => {
       const serverWithTag = new ServerRedis({ clientInfoTag: 'my-app' });
       const redisClient = serverWithTag.createRedisClient();
 
       expect(redisClient).to.be.ok;
-      // Verify the custom clientInfoTag was used
+      // Verify the clientInfoTag was used
       expect(redisClient.options.clientInfoTag).to.equal('my-app');
     });
   });

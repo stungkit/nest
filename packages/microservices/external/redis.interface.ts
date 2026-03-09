@@ -39,7 +39,6 @@ export interface IORedisOptions {
    * Set a tag to identify the framework using the Redis client library.
    * This is appended to the library name (e.g., "ioredis(nestjs_v11.0.0)").
    * @link https://redis.io/docs/latest/commands/client-setinfo/
-   * @default "nestjs_v{version}" (e.g., "nestjs_v11.0.0")
    */
   clientInfoTag?: string;
 
