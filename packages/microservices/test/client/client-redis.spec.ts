@@ -390,4 +390,24 @@ describe('ClientRedis', () => {
       );
     });
   });
+
+  describe('createClient', () => {
+    it('should not set clientInfoTag when not provided', () => {
+      const clientWithoutTag = new ClientRedis({});
+      const redisClient = clientWithoutTag.createClient();
+
+      expect(redisClient).to.be.ok;
+      // Verify no clientInfoTag was set (opt-in only)
+      expect(redisClient.options.clientInfoTag).to.be.undefined;
+    });
+
+    it('should use clientInfoTag when provided', () => {
+      const clientWithTag = new ClientRedis({ clientInfoTag: 'my-app' });
+      const redisClient = clientWithTag.createClient();
+
+      expect(redisClient).to.be.ok;
+      // Verify the clientInfoTag was used
+      expect(redisClient.options.clientInfoTag).to.equal('my-app');
+    });
+  });
 });
