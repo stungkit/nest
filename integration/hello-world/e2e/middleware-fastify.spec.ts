@@ -765,5 +765,32 @@ describe('Middleware (FastifyAdapter)', () => {
         await app.close();
       });
     });
+
+    describe('HEAD auto-forwarding to GET', () => {
+      beforeEach(async () => {
+        app = (
+          await Test.createTestingModule({
+            imports: [TestModule],
+          }).compile()
+        ).createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+
+        await app.init();
+      });
+
+      it(`GET forRoutes(HEAD /abc/def)`, () => {
+        return app
+          .inject({
+            method: 'HEAD',
+            url: '/abc/def',
+          })
+          .then(({ payload }) =>
+            expect(payload).to.be.eql(MIDDLEWARE_RETURN_VALUE),
+          );
+      });
+
+      afterEach(async () => {
+        await app.close();
+      });
+    });
   });
 });
