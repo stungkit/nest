@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@apollo/gateway": "2.13.3",
-    "@apollo/server": "5.4.0",
+    "@apollo/server": "5.5.0",
     "@nestjs/apollo": "13.2.4",
     "@nestjs/common": "11.1.17",
     "@nestjs/core": "11.1.17",
