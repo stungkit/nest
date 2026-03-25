@@ -31,7 +31,12 @@ import { NestApplication } from './nest-application';
 import { NestApplicationContext } from './nest-application-context';
 import { DependenciesScanner } from './scanner';
 
-type IEntryNestModule =
+/**
+ * Represents the entry (root) module type accepted by the NestFactory methods.
+ *
+ * @publicApi
+ */
+export type IEntryNestModule =
   | Type<any>
   | DynamicModule
   | ForwardReference
