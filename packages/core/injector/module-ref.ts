@@ -2,6 +2,7 @@ import { IntrospectionResult, Scope, Type } from '@nestjs/common';
 import { getClassScope } from '../helpers/get-class-scope';
 import { isDurable } from '../helpers/is-durable';
 import { AbstractInstanceResolver } from './abstract-instance-resolver';
+import { STATIC_CONTEXT } from './constants';
 import { NestContainer } from './container';
 import { Injector } from './injector';
 import { InstanceLinksHost } from './instance-links-host';
@@ -171,6 +172,14 @@ export abstract class ModuleRef extends AbstractInstanceResolver {
       host: moduleRef,
     });
 
+    if (type?.prototype) {
+      wrapper.setInstanceByContextId(contextId ?? STATIC_CONTEXT, {
+        instance: Object.create(type.prototype),
+        isResolved: false,
+        isPending: false,
+      });
+    }
+
     /* eslint-disable-next-line no-async-promise-executor */
     return new Promise<T>(async (resolve, reject) => {
       try {
@@ -180,6 +189,7 @@ export abstract class ModuleRef extends AbstractInstanceResolver {
             moduleRef,
             undefined,
             contextId,
+            wrapper,
           );
           const instance = new type(...instances);
           this.injector.applyProperties(instance, properties);
@@ -191,6 +201,7 @@ export abstract class ModuleRef extends AbstractInstanceResolver {
           undefined,
           callback,
           contextId,
+          wrapper,
         );
       } catch (err) {
         reject(err);
