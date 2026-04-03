@@ -444,7 +444,7 @@ export class Injector {
     const selfParams = this.reflectSelfParams<T>(type);
 
     selfParams.forEach(({ index, param }) => (paramtypes[index] = param));
-    return paramtypes;
+    return Array.from(paramtypes);
   }
 
   public reflectOptionalParams<T>(type: Type<T>): any[] {
