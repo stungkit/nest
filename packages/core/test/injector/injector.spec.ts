@@ -744,6 +744,53 @@ describe('Injector', () => {
         { id: 2 },
       );
     });
+
+    it('should not hang when a parameter is missing @Inject and design:paramtypes is absent', async function () {
+      this.timeout(500);
+
+      @Injectable()
+      class CatService {}
+
+      @Injectable()
+      class DogService {}
+
+      @Injectable()
+      class ZooService {
+        constructor(
+          @Inject(CatService) cat: CatService,
+          dog: DogService, // no @Inject — becomes a sparse array hole without design:paramtypes
+          @Inject(CatService) cat2: CatService,
+        ) {}
+      }
+
+      // Simulate missing emitDecoratorMetadata (esbuild).
+      // @Inject writes to SELF_DECLARED_DEPS_METADATA at indices 0 and 2,
+      // so without design:paramtypes the paramtypes array is sparse: [CatService, <hole>, CatService].
+      // Before the fix, Array.map skipped the hole, so the Barrier never reached its
+      // target count and resolveConstructorParams hung forever.
+      Reflect.deleteMetadata('design:paramtypes', ZooService);
+
+      // Register CatService in the module so indices 0 and 2 resolve successfully
+      // and reach signalAndWait() — this is required to reproduce the hang.
+      const container = new NestContainer();
+      const { moduleRef } = (await container.addModule(
+        class TestModule {},
+        [],
+      ))!;
+      moduleRef.addProvider({
+        provide: CatService,
+        useClass: CatService,
+      });
+
+      const wrapper = new InstanceWrapper({ metatype: ZooService });
+
+      const result = await injector
+        .resolveConstructorParams(wrapper, moduleRef, undefined, () => {})
+        .then(() => 'resolved')
+        .catch(() => 'rejected');
+
+      expect(result).to.be.eq('rejected');
+    });
   });
 
   describe('resolveProperties', () => {
@@ -758,6 +805,37 @@ describe('Injector', () => {
       );
       await injector.resolveProperties(wrapper, null!, null!, { id: 2 });
       expect(loadPropertiesMetadataSpy.called).to.be.true;
+    });
+  });
+
+  describe('reflectConstructorParams', () => {
+    it('should not produce sparse arrays when design:paramtypes is missing', () => {
+      @Injectable()
+      class CatService {}
+
+      @Injectable()
+      class DogService {}
+
+      @Injectable()
+      class ZooService {
+        constructor(
+          @Inject(CatService) cat: CatService,
+          dog: DogService, // no @Inject
+          @Inject(CatService) cat2: CatService,
+        ) {}
+      }
+
+      // Simulate missing emitDecoratorMetadata (esbuild)
+      Reflect.deleteMetadata('design:paramtypes', ZooService);
+
+      const injector = new Injector();
+      const params = injector.reflectConstructorParams(ZooService);
+
+      // Should be a dense array — no holes
+      expect(Object.keys(params)).to.deep.eq(['0', '1', '2']);
+      // Index 1 should be explicit undefined, not a hole
+      expect(1 in params).to.be.true;
+      expect(params[1]).to.be.undefined;
     });
   });
 
