@@ -7,6 +7,7 @@ import { MsPattern } from '../interfaces';
 
 const DEFAULT_MAX_DEPTH = 5;
 const DEFAULT_MAX_KEYS = 20;
+const escape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
 /**
  * Transforms the Pattern to Route safely.
@@ -46,11 +47,11 @@ export function transformPatternToRoute(
 
   const parts = sortedKeys.map(key => {
     const value = pattern[key];
-    let partialRoute = `"${key}":`;
+    let partialRoute = `"${escape(key)}":`;
 
     // Only quote strings, numbers and objects are handled recursively
     if (isString(value)) {
-      partialRoute += `"${transformPatternToRoute(value, depth + 1, maxDepth, maxKeys)}"`;
+      partialRoute += `"${escape(transformPatternToRoute(value, depth + 1, maxDepth, maxKeys))}"`;
     } else {
       partialRoute += transformPatternToRoute(
         value,
