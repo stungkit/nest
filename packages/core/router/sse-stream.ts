@@ -97,9 +97,12 @@ export class SseStream extends Transform {
     encoding: string,
     callback: (error?: Error | null, data?: any) => void,
   ) {
-    let data = message.type ? `event: ${message.type}\n` : '';
-    data += message.id ? `id: ${message.id}\n` : '';
-    data += message.retry ? `retry: ${message.retry}\n` : '';
+    const sanitize = (val: string | number) =>
+      String(val).replace(/[\r\n]/g, '');
+
+    let data = message.type ? `event: ${sanitize(message.type)}\n` : '';
+    data += message.id ? `id: ${sanitize(message.id)}\n` : '';
+    data += message.retry ? `retry: ${sanitize(message.retry)}\n` : '';
     data += message.data ? toDataString(message.data) : '';
     data += '\n';
     this.push(data);
